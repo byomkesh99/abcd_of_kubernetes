@@ -34,48 +34,48 @@ Imagine a company with 200 microservices. Then how you are going manage all the 
 
 **A Typycal Workflow*
 
-Developer
-     │
-     ▼
-Git Repository (Source of Truth)
-     │
-     ▼
-Pull Request
-     │
-     ▼
-Code Review
-     │
-     ▼
-Merge
-     │
-     ▼
-ArgoCD / Flux
-     │
-     ▼
-Kubernetes Cluster
+        Developer
+             │
+             ▼
+        Git Repository (Source of Truth)
+             │
+             ▼
+        Pull Request
+             │
+             ▼
+        Code Review
+             │
+             ▼
+        Merge
+             │
+             ▼
+        ArgoCD / Flux
+             │
+             ▼
+        Kubernetes Cluster
 
 >>A Common Repository Structure<<
 
-git-repo/
-│
-├── apps/
-│   ├── payment-service/
-│   │      ├── base/
-│   │      └── overlays/
-│   │           ├── dev/
-│   │           ├── stage/
-│   │           └── prod/
-│   │
-│   ├── order-service/
-│   ├── customer-service/
-│   ├── inventory-service/
-│   └── ...
-│
-└── platform/
-    ├── ingress/
-    ├── monitoring/
-    ├── logging/
-    └── cert-manager/
+        git-repo/
+        │
+        ├── apps/
+        │   ├── payment-service/
+        │   │      ├── base/
+        │   │      └── overlays/
+        │   │           ├── dev/
+        │   │           ├── stage/
+        │   │           └── prod/
+        │   │
+        │   ├── order-service/
+        │   ├── customer-service/
+        │   ├── inventory-service/
+        │   └── ...
+        │
+        └── platform/
+            ├── ingress/
+            ├── monitoring/
+            ├── logging/
+            └── cert-manager/
 
 ## Industry Best Practices
 
@@ -91,9 +91,9 @@ If I were designing a platform for 200+ applications, then:
 
 ## Tool Installation
 
-> brew install kustomize   # This is MACOS
-> OR Below Command
-> curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+      $ brew install kustomize   # This is MACOS
+      OR Below Command
+      $ curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
 
 By-default it comes with "kubectl" but its better to update with recent stable version.
 
@@ -115,7 +115,7 @@ $ kustomize build k8s    # k8s is a folder where kubernetes deployment and servi
           `
 
 To apply the kustomize menifest here is the commands
-> kustomize build k8s/ | kubectl apply -f -    # its simply Linux bash command
+        $ kustomize build k8s/ | kubectl apply -f -    # its simply Linux bash command
 
 ## Managing Directories:
 
@@ -132,9 +132,9 @@ resources:
 
 Then run the command
 
-> kustomize build k8ss/ | kubectl apply -f -
-OR
-> kubectl apply -k k8ss/
+        $ kustomize build k8ss/ | kubectl apply -f -        # k8ss = just folder where all the yaml configs are there
+        OR
+        $ kubectl apply -k k8ss/
 
 -->> To apply the changes for this folder here is the command
 
