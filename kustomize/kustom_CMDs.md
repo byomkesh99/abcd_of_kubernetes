@@ -8,17 +8,17 @@ Example Structure:
 
 >>Base + Overlay (Most Common)<<
 
-k8s/                        # Parent Folder
-│
-├── base/                   # Base folder
-│     ├── deployment.yaml
-│     ├── service.yaml
-│     └── kustomization.yaml
-│
-└── overlays/               # Different ENV folder
-      ├── dev/
-      ├── stage/
-      └── prod/
+          k8s/                        # Parent Folder
+          │
+          ├── base/                   # Base folder
+          │     ├── deployment.yaml
+          │     ├── service.yaml
+          │     └── kustomization.yaml
+          │
+          └── overlays/               # Different ENV folder
+                ├── dev/
+                ├── stage/
+                └── prod/
 
 >>Which Is More Common?<<
 
@@ -98,21 +98,21 @@ If I were designing a platform for 200+ applications, then:
 By-default it comes with "kubectl" but its better to update with recent stable version.
 
 
-> kustomize version --short   # Verify your customized installed version
->
-> kustomize build k8s    # k8s is a folder where kubernetes deployment and service yamls are there. And make sure your K8s cluster is running
+$ kustomize version --short   # Verify your customized installed version
+$
+$ kustomize build k8s    # k8s is a folder where kubernetes deployment and service yamls are there. And make sure your K8s cluster is running
 
-`
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-#kubernetes resources to be managed by kustomize 
-resources:
-    - nginx-deployment.yaml
-    - nginx-service.yaml
-#Customizations that need to be made
-commonLabels:
-  company: KhelaGhar
-`
+          `
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          #kubernetes resources to be managed by kustomize 
+          resources:
+              - nginx-deployment.yaml
+              - nginx-service.yaml
+          #Customizations that need to be made
+          commonLabels:
+            company: KhelaGhar
+          `
 
 To apply the kustomize menifest here is the commands
 > kustomize build k8s/ | kubectl apply -f -    # its simply Linux bash command
