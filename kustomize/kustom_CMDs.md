@@ -100,9 +100,11 @@ If I were designing a platform for 200+ applications, then:
 By-default it comes with "kubectl" but its better to update with recent stable version.
 
 
-$ kustomize version --short   # Verify your customized installed version
-$
-$ kustomize build k8s    # k8s is a folder where kubernetes deployment and service yamls are there. And make sure your K8s cluster is running
+        $ kustomize version --short   # Verify your customized installed version
+        $
+        $ kustomize build k8s    # k8s is a folder where kubernetes deployment and service yamls are there. And make sure your K8s cluster is running
+
+A sample as example:
 
           `
           apiVersion: kustomize.config.k8s.io/v1beta1
@@ -124,13 +126,13 @@ To apply the kustomize menifest here is the commands
 As example, you have subdirectoried inside k8ss folder call dev api and db. To apply kustom for all the files inside sub-directory
 you need add the following lines in the kustomization.yaml file.
 
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-    - api/api-depl.yaml
-    - api/api-service.yaml
-    - db/db-depl.yaml
-    - db/db-service.yaml
+        apiVersion: kustomize.config.k8s.io/v1beta1
+        kind: Kustomization
+        resources:
+            - api/api-depl.yaml
+            - api/api-service.yaml
+            - db/db-depl.yaml
+            - db/db-service.yaml
 
 Then run the command
 
@@ -140,9 +142,9 @@ Then run the command
 
 -->> To apply the changes for this folder here is the command
 
-    $ kubectl apply -k /root/code/k8s/overlays/QA                 # Apply to perticular folder
-    $ kubectl apply -k /root/code/k8s/overlays/staging
-    $ kubectl apply -k k8s-components-2/overlays/enterprise
+        $ kubectl apply -k /root/code/k8s/overlays/QA                 # Apply to perticular folder
+        $ kubectl apply -k /root/code/k8s/overlays/staging
+        $ kubectl apply -k k8s-components-2/overlays/enterprise
 
 ### Common Transformer
 
@@ -151,10 +153,10 @@ Example, we wanted to add namespace call 'custom-ingress' in all my paricular se
 
 Example: Check the File -  k8ssss/kustomization.yaml
 
-commonLabels - adds a label to all Kubernetes resources
-naePrefix/Suffix - adds a common prefix-suffix too all resource names
-Namespace - add a common name space to all resources
-commonAnnotations - adds an annotations to all resources
+* commonLabels - adds a label to all Kubernetes resources
+* naePrefix/Suffix - adds a common prefix-suffix too all resource names
+* Namespace - add a common name space to all resources
+* commonAnnotations - adds an annotations to all resources
 
 ### Play with Patches
 
@@ -204,6 +206,7 @@ JSON 6902 vs Strategic Merge Patch - You can plan any one of them which suits pa
 * Two different types of Patches to Apply ( Decide the best you like to Apply i.e. Inline OR Separate File)
 
 >> Inline << - Meaning all patch code in one kustomization.yaml file (Play_With_Patches)
+
 File: Kustomization.yaml
 
         patches: 
@@ -236,7 +239,7 @@ File: replica-patch.yaml
 Before Apply Kustomization:
 
 File: api-depl.yaml
-        `
+
         apiVersion: apps/v1
         kind: Deployment
         metadata:
@@ -254,7 +257,6 @@ File: api-depl.yaml
               containers:
                 - name: nginx
                   image: nginx
-        `
 
 File: kustomization.yaml   ## here we are going to replace the "component value"
 
@@ -270,6 +272,7 @@ File: kustomization.yaml   ## here we are going to replace the "component value"
 After APPLY the patch 
 
 File: api-depl.yaml
+
         apiVersion: apps/v1
         kind: Deployment
         metadata:
@@ -291,6 +294,7 @@ File: api-depl.yaml
 >> Same thing to achieve via Strategic Merge Patch
 
 File: Kustomization.yaml
+
         patches:
           - label-patch.yaml
         File: label-patch.yaml
@@ -307,6 +311,7 @@ File: Kustomization.yaml
 >> How to Add new key in deployment file <<  (Play_With_Patches)
 
 File: kustomization.yaml
+
         patches:
           - target:
               kind: Deployment
@@ -317,7 +322,7 @@ File: kustomization.yaml
                 value: Khelaghar
 
 Output:
-File: api-depl.yaml
+
         apiVersion: apps/v1
         kind: Deployment
         metadata:
@@ -340,10 +345,12 @@ File: api-depl.yaml
 >> Same thing to achieve via Strategic Merge Patch
 
 File: kustomization.yaml
+
         patch:
           - label-patch.yaml
 
 File: label-patch.yaml
+
         apiVersion: apps/v1
         kind: Deployment
         metadata:
@@ -357,6 +364,7 @@ File: label-patch.yaml
 >> How to Add new key in deployment file <<  (Play_With_Patches)
 
 File: kustomization.yaml
+
         patches:
           - target:
               kind: Deployment
@@ -368,6 +376,7 @@ File: kustomization.yaml
 >>  With Strategic Merge  <<  (Play_With_Patches)
 
 File: kustomization.yaml
+
         patch:
           - label-patch.yaml
         File: label-patch.yaml
@@ -383,6 +392,8 @@ File: kustomization.yaml
 
 >> PATCH List <<   (Play_With_Patches)
 
+***
+
 >> Replace "NGINX" image <<
 
 Replace List according to Json6902 . Here we are going to replace "NGINX" image
@@ -390,6 +401,7 @@ Replace List according to Json6902 . Here we are going to replace "NGINX" image
 Before Apply Kustomization:
 
 File: api-depl.yaml
+
         apiVersion: apps/v1
         kind: Deployment
         metadata:
@@ -409,6 +421,7 @@ File: api-depl.yaml
                   image: nginx
 
 File: kustomization.yaml
+
         patches:
           - target:
               kind: Deployment
@@ -456,6 +469,7 @@ File: api-depl.yaml
 >> Now Replace List according to Strategic Merge Patch  <<  (Play_With_Patches)
 
 File: kustomization.yaml
+
         patch:
           - label-patch.yaml
 
@@ -490,6 +504,7 @@ File: kustomization.yaml
 >> Add List with Strategic Merge Patch <<  (Play_With_Patches)
 
 File: kustomization.yaml
+
         patch:
           - label-patch.yaml
 
@@ -547,6 +562,7 @@ File: kustomization.yaml  [according to Json6902]
 >> Delete List Strategic Merge Patch << (Play_With_Patches)
 
 File: kustomization.yaml
+
         patch:
           - label-patch.yaml
 
@@ -590,6 +606,7 @@ File: label-patch.yaml
 NOTE: Unless you understand all the concept from all steps mentioned above of this document, the below short form of code will not be meaningfull
 
 File: Base/kustomization.yaml
+
 resources:
     - nginx-depl.yaml
     - service.yaml
