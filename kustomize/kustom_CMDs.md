@@ -1,5 +1,7 @@
 # Kustomize Commands
 
+## All Credit Goes to Mumshad Mannambeth (KodeKloud) & and his team - This is my personal note from his teachings
+
 Kustomize, a Kubernetes-native tool, takes a declarative approach by using patches and overlays to modify base configurations that require the use of templating languages.
 
 With Kustomization you are managing your Kubernetes config files in a better way for Dev, PrePROD and PROD environment without repeating dublicate code.
@@ -138,9 +140,9 @@ Then run the command
 
 -->> To apply the changes for this folder here is the command
 
-> kubectl apply -k /root/code/k8s/overlays/QA                 # Apply to perticular folder
-> kubectl apply -k /root/code/k8s/overlays/staging
-> kubectl apply -k k8s-components-2/overlays/enterprise
+    $ kubectl apply -k /root/code/k8s/overlays/QA                 # Apply to perticular folder
+    $ kubectl apply -k /root/code/k8s/overlays/staging
+    $ kubectl apply -k k8s-components-2/overlays/enterprise
 
 ### Common Transformer
 
@@ -176,218 +178,211 @@ JSON 6902 vs Strategic Merge Patch - You can plan any one of them which suits pa
 
 ### Json 6902 Patch
 
-`
-patches:              # Here, with the "-target" block, we match the K8s object and then apply the patch i.e. new replicas in this case
-  - target:
-      kind: Deployment
-      name: api-deployment
-    patch: |-
-      - op: replace
-        path: /spec/replicas    # just a map to come down to replcas labels
-        value: 5
-`
+        `
+        patches:              # Here, with the "-target" block, we match the K8s object and then apply the patch i.e. new replicas in this case
+          - target:
+              kind: Deployment
+              name: api-deployment
+            patch: |-
+              - op: replace
+                path: /spec/replicas    # just a map to come down to replcas labels
+                value: 5
+        `
 [Ref_Link](https://datatracker.ietf.org/doc/html/rfc6902)   - See the JSON syntax and details
 
 ### Strategic Merge Patch
 
-patches:                # Its easy to understand. We just copy all the "Deployment" yaml codes and then keep till replicas and remove rest.
-  - patch: |-
-      apiVersion: app/v1
-      kind: Deployment
-      metadata:
-        name: api-deployment
-      spec:
-        replicas: 5 
+        patches:                # Its easy to understand. We just copy all the "Deployment" yaml codes and then keep till replicas and remove rest.
+          - patch: |-
+              apiVersion: app/v1
+              kind: Deployment
+              metadata:
+                name: api-deployment
+              spec:
+                replicas: 5 
 
 * Two different types of Patches to Apply ( Decide the best you like to Apply i.e. Inline OR Separate File)
 
 >> Inline << - Meaning all patch code in one kustomization.yaml file (Play_With_Patches)
 File: Kustomization.yaml
 
-patches: 
-  - target:
-      kind: Deployment
-      name: api-deployment
-    patch: |-
-      - op: replace
-        path: /spec/replicas
-        value: 5 
+        patches: 
+          - target:
+              kind: Deployment
+              name: api-deployment
+            patch: |-
+              - op: replace
+                path: /spec/replicas
+                value: 5 
 
 >> Separate File <<  - Meaning separating your "-op" i.e. operation line of code in another file and link it in kustomization.yaml file
 
 File: Kustomization.yaml 
 
-patches:
-  - path: replica-patch.yaml
-    target:
-      kind: Deployment
-      name: nginx-deployment
+        patches:
+          - path: replica-patch.yaml
+            target:
+              kind: Deployment
+              name: nginx-deployment
 
 File: replica-patch.yaml
 
-- op: replace
-  path: /spec/replicas
-  value: 5 
+        - op: replace
+          path: /spec/replicas
+          value: 5 
 
 >> Replace Dictionary [Json6902] << (Play_With_Patches)
 
 Before Apply Kustomization:
 
 File: api-depl.yaml
-`
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      component: api
-  template:
-    metadata:
-      labels:
-        component: api
-    spec:
-      containers:
-        - name: nginx
-          image: nginx
-`
+        `
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              component: api
+          template:
+            metadata:
+              labels:
+                component: api
+            spec:
+              containers:
+                - name: nginx
+                  image: nginx
+        `
 
 File: kustomization.yaml   ## here we are going to replace the "component value"
 
-patches:
-  - target:
-       kind: Deployment
-       name: api-deployment
-    patch: |-
-      - op: replace
-        path: /spec/template/metadata/lebels/component
-        value: web
+        patches:
+          - target:
+               kind: Deployment
+               name: api-deployment
+            patch: |-
+              - op: replace
+                path: /spec/template/metadata/lebels/component
+                value: web
 
 After APPLY the patch 
 
 File: api-depl.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      component: api
-  template:
-    metadata:
-      labels:
-        component: web   ### Here is the replace value
-    spec:
-      containers:
-        - name: nginx
-          image: nginx
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              component: api
+          template:
+            metadata:
+              labels:
+                component: web   ### Here is the replace value
+            spec:
+              containers:
+                - name: nginx
+                  image: nginx
 
 >> Same thing to achieve via Strategic Merge Patch
 
 File: Kustomization.yaml
-patches:
-  - label-patch.yaml 
-
-File: label-patch.yaml 
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  template:
-    metadata:
-      labels:
-        component: web
+        patches:
+          - label-patch.yaml
+        File: label-patch.yaml
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          template:
+            metadata:
+              labels:
+                component: web
 
 >> How to Add new key in deployment file <<  (Play_With_Patches)
 
-`
 File: kustomization.yaml
-patches:
-  - target:
-      kind: Deployment
-      name: api-deployment
-    patch: |-
-      - op: add
-        path: /spec/template/metadata/labels/org
-        value: Khelaghar 
-`
-`
+        patches:
+          - target:
+              kind: Deployment
+              name: api-deployment
+            patch: |-
+              - op: add
+                path: /spec/template/metadata/labels/org
+                value: Khelaghar
+
 Output:
 File: api-depl.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      component: api
-  template:
-    metadata:
-      labels:
-        component: web
-        org: Khelaghar      # here the 'ORG' gets added
-    spec:
-      containers:
-        - name: nginx
-          image: nginx
-`
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              component: api
+          template:
+            metadata:
+              labels:
+                component: web
+                org: Khelaghar      # here the 'ORG' gets added
+            spec:
+              containers:
+                - name: nginx
+                  image: nginx
 
 >> Same thing to achieve via Strategic Merge Patch
 
 File: kustomization.yaml
-patch:
-  - label-patch.yaml
+        patch:
+          - label-patch.yaml
 
 File: label-patch.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  template:
-    metadata:
-      labels:
-        org: Khelaghar
-
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          template:
+            metadata:
+              labels:
+                org: Khelaghar
 
 >> How to Add new key in deployment file <<  (Play_With_Patches)
 
 File: kustomization.yaml
-patches:
-  - target:
-      kind: Deployment
-      name: api-deployment
-    patch: |-
-      - op: remove
-        path: /spec/template/metadata/labels/org
-
+        patches:
+          - target:
+              kind: Deployment
+              name: api-deployment
+            patch: |-
+              - op: remove
+                path: /spec/template/metadata/labels/org
 
 >>  With Strategic Merge  <<  (Play_With_Patches)
 
 File: kustomization.yaml
-patch:
-  - label-patch.yaml
-
-File: label-patch.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  template:
-    metadata:
-      labels:
-        org: null
+        patch:
+          - label-patch.yaml
+        File: label-patch.yaml
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          template:
+            metadata:
+              labels:
+                org: null
 
 >> PATCH List <<   (Play_With_Patches)
->
+
 >> Replace "NGINX" image <<
 
 Replace List according to Json6902 . Here we are going to replace "NGINX" image
@@ -395,118 +390,121 @@ Replace List according to Json6902 . Here we are going to replace "NGINX" image
 Before Apply Kustomization:
 
 File: api-depl.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      component: api
-  template:
-    metadata:
-      labels:
-        component: api
-    spec:
-      containers:
-        - name: nginx
-          image: nginx
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              component: api
+          template:
+            metadata:
+              labels:
+                component: api
+            spec:
+              containers:
+                - name: nginx
+                  image: nginx
 
 File: kustomization.yaml
-patches:
-  - target:
-      kind: Deployment
-      name: api-deployment
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0    ## please here it follows as index of dictionary
-        value:
-          - name: haproxy
-            image: haproxy
+        patches:
+          - target:
+              kind: Deployment
+              name: api-deployment
+            patch: |-
+              - op: replace
+                path: /spec/template/spec/containers/0    ## please here it follows as index of dictionary
+                value:
+                  - name: haproxy
+                    image: haproxy
 
 >> Another way of Image replace <<  (Play_With_Patches)
 
-patches:
-  - target:
-      kind: Deployment
-      name: api-deployment
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/image
-        value: haproxy
+        patches:
+          - target:
+              kind: Deployment
+              name: api-deployment
+            patch: |-
+              - op: replace
+                path: /spec/template/spec/containers/0/image
+                value: haproxy
 
 ### After apply the kustomization
 
 File: api-depl.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      component: api
-  template:
-    metadata:
-      labels:
-        component: api
-    spec:
-      containers:
-        - name: haproxy
-          image: haproxy
 
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              component: api
+          template:
+            metadata:
+              labels:
+                component: api
+            spec:
+              containers:
+                - name: haproxy
+                  image: haproxy
 
 >> Now Replace List according to Strategic Merge Patch  <<  (Play_With_Patches)
 
 File: kustomization.yaml
-patch:
-  - label-patch.yaml
+        patch:
+          - label-patch.yaml
 
 File: label-patch.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  template:
-    spec:
-      containers:
-        - name: nginx
-          image: haproxy
+
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          template:
+            spec:
+              containers:
+                - name: nginx
+                  image: haproxy
 
 >> Add List Json6902 << (Play_With_Patches)
 
 File: kustomization.yaml
-patches:
-  - target:
-      kind: Deployment
-      name: api-deployment
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/-     # This '-' is compulsory
-        value:
-          name: haproxy
-          image: haproxy
+
+        patches:
+          - target:
+              kind: Deployment
+              name: api-deployment
+            patch: |-
+              - op: replace
+                path: /spec/template/spec/containers/-     # This '-' is compulsory
+                value:
+                  name: haproxy
+                  image: haproxy
 
 >> Add List with Strategic Merge Patch <<  (Play_With_Patches)
 
 File: kustomization.yaml
-patch:
-  - label-patch.yaml
+        patch:
+          - label-patch.yaml
 
 File: label-patch.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  template:
-    spec:
-      containers:
-        - name: haproxy
-          image: haproxy
+
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          template:
+            spec:
+              containers:
+                - name: haproxy
+                  image: haproxy
 
 
 >> Delete List Json 6902 <<  (Play_With_Patches)
@@ -514,77 +512,80 @@ spec:
 In this example we are taking 2 container in the list and then going to Delete one
 
 File: api-depl.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      component: api
-  template:
-    metadata:
-      labels:
-        component: api
-    spec:
-      containers:
-        - name: web     # Index 0
-          image: nginx
-        - name: database  # Index 1
-          image: mongo
+
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              component: api
+          template:
+            metadata:
+              labels:
+                component: api
+            spec:
+              containers:
+                - name: web     # Index 0
+                  image: nginx
+                - name: database  # Index 1
+                  image: mongo
 
 
 File: kustomization.yaml  [according to Json6902]
-patches:
-  - target:
-      kind: Deployment
-      name: api-deployment
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/1  # Note here we put Index 1 because we are removing 2nd container
+
+        patches:
+          - target:
+              kind: Deployment
+              name: api-deployment
+            patch: |-
+              - op: replace
+                path: /spec/template/spec/containers/1  # Note here we put Index 1 because we are removing 2nd container
 
 >> Delete List Strategic Merge Patch << (Play_With_Patches)
 
 File: kustomization.yaml
-patch:
-  - label-patch.yaml
+        patch:
+          - label-patch.yaml
 
 File: label-patch.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-deployment
-spec:
-  template:
-    spec:
-      containers:
-        - $patch: delete
-          name: database
+
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: api-deployment
+        spec:
+          template:
+            spec:
+              containers:
+                - $patch: delete
+                  name: database
 
 ### Overlays
 
 #### BASE STRUCTURES
 
-k8s/
-|___base/
-|   |__kustomization.yaml
-|   |__nginx-depl.yaml
-|   |__service.yaml
-|   |__ redis-depl.yaml
-|
-|___overlays/
-    |___dev/
-    |   |___kustomization.yaml
-    |   |___config-map.yaml
-    |
-    |___stg/
-    |   |___kustomization.yaml
-    |   |___config-map.yaml
-    |
-    |___prod/
-        |___kustomization.yaml
-        |___config-map.yaml
+        k8s/
+        |___base/
+        |   |__kustomization.yaml
+        |   |__nginx-depl.yaml
+        |   |__service.yaml
+        |   |__ redis-depl.yaml
+        |
+        |___overlays/
+            |___dev/
+            |   |___kustomization.yaml
+            |   |___config-map.yaml
+            |
+            |___stg/
+            |   |___kustomization.yaml
+            |   |___config-map.yaml
+            |
+            |___prod/
+                |___kustomization.yaml
+                |___config-map.yaml
 
 NOTE: Unless you understand all the concept from all steps mentioned above of this document, the below short form of code will not be meaningfull
 
@@ -595,63 +596,66 @@ resources:
     - redis-depl.yaml
 
 File: Base/nginx-depl.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-deployment
-spec:
-  replicas: 1 
+
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: nginx-deployment
+        spec:
+          replicas: 1 
 
 Now as per your needs in the env of DEV and PROD. EX: we are using 2 replica in Dev and 5 in PROD.
 
 File: dev/kustomization.yaml
-bases:
-  - ../../base
-patch: |-
-  - op: replace
-    path: /spec/replicas
-    value" 2
+
+        bases:
+          - ../../base
+        patch: |-
+          - op: replace
+            path: /spec/replicas
+            value" 2
 
 File: prod/kustomization.yaml
-bases:
-  - ../../base
-patch: |-
-  - op: replace
-    path: /spec/replicas
-    value" 5
 
+      bases:
+        - ../../base
+      patch: |-
+        - op: replace
+          path: /spec/replicas
+          value" 5
 
 Note: You can add more resource which may not managed from Base folder
 
 Example:
-|___overlays/
-    |___dev/
-    |   |___kustomization.yaml
-    |   |___config-map.yaml
-    |
-    |___stg/
-    |   |___kustomization.yaml
-    |   |___config-map.yaml
-    |
-    |___prod/
-        |___kustomization.yaml
-        |___config-map.yaml
-        |___grafana-depl.yaml
-        |___prometheus-depl.yaml
+
+        |___overlays/
+            |___dev/
+            |   |___kustomization.yaml
+            |   |___config-map.yaml
+            |
+            |___stg/
+            |   |___kustomization.yaml
+            |   |___config-map.yaml
+            |
+            |___prod/
+                |___kustomization.yaml
+                |___config-map.yaml
+                |___grafana-depl.yaml
+                |___prometheus-depl.yaml
 
 File: prod/kustomization
 
-bases:
-  - ../../base
+        bases:
+          - ../../base
 
-resources:
-  - grafana-depl.yaml
-  - prometheus-depl.yaml
+        resources:
+          - grafana-depl.yaml
+          - prometheus-depl.yaml
 
-patch: |-
-  - op: replace
-    path: /spec/replicas
-    value" 5
+        patch: |-
+          - op: replace
+            path: /spec/replicas
+            value" 5
 
 ### Components
 
@@ -673,30 +677,30 @@ patch: |-
 
 ### Folder Structure
 
-k8s/
-|___base/
-|   |__kustomization.yaml
-|   |__api-depl.yaml
-|   
-|___Components/
-|    |
-|    |___caching/
-|    |    |___kustomization.yaml
-|    |    |___deployment-patch.yaml 
-|    |    |___redis-depl.yaml
-|    |
-|    |___DB/
-|        |___kustomization.yaml
-|        |___deployment-patch.yaml
-|        |___postgres-depl.yaml
-|
-|___overlays/
-    |___dev/
-    |   |___kustomization.yaml
-    |   
-    |___premium/
-    |   |___kustomization.yaml
-    |
-    |___standalone/
-        |___kustomization.yaml
+        k8s/
+        |___base/
+        |   |__kustomization.yaml
+        |   |__api-depl.yaml
+        |   
+        |___Components/
+        |    |
+        |    |___caching/
+        |    |    |___kustomization.yaml
+        |    |    |___deployment-patch.yaml 
+        |    |    |___redis-depl.yaml
+        |    |
+        |    |___DB/
+        |        |___kustomization.yaml
+        |        |___deployment-patch.yaml
+        |        |___postgres-depl.yaml
+        |
+        |___overlays/
+            |___dev/
+            |   |___kustomization.yaml
+            |   
+            |___premium/
+            |   |___kustomization.yaml
+            |
+            |___standalone/
+                |___kustomization.yaml
 
