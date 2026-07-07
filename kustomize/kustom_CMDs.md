@@ -99,14 +99,12 @@ If I were designing a platform for 200+ applications, then:
 
 By-default it comes with "kubectl" but its better to update with recent stable version.
 
-
         $ kustomize version --short   # Verify your customized installed version
         $
         $ kustomize build k8s    # k8s is a folder where kubernetes deployment and service yamls are there. And make sure your K8s cluster is running
 
 A sample as example:
 
-          `
           apiVersion: kustomize.config.k8s.io/v1beta1
           kind: Kustomization
           #kubernetes resources to be managed by kustomize 
@@ -116,7 +114,7 @@ A sample as example:
           #Customizations that need to be made
           commonLabels:
             company: KhelaGhar
-          `
+
 
 To apply the kustomize menifest here is the commands
         $ kustomize build k8s/ | kubectl apply -f -    # its simply Linux bash command
@@ -164,15 +162,14 @@ Example: Check the File -  k8ssss/kustomization.yaml
 * Unlike common transformers, patches provide a more "surgical" approach to targeting one or more  sections in a Kubernetes resource.
 
 * To create a patch 3 parameters must be provided:
-      * Operation Type: add/remove/replace 
-
-      * Target: What resource should this patch be applied on
-          * Kind
-          * Version/Group
-          * Name
-          * Namespace
-          * labelSelector
-          * AnnotationSelector
+    * Operation Type: add/remove/replace
+    * Target: What resource should this patch be applied on
+       * Kind
+       * Version/Group
+       * Name
+       * Namespace
+       * labelSelector
+       * AnnotationSelector
 
 Value: What is the value that will either be replaced or added with (only needed for add/replce operations) 
 
@@ -180,7 +177,6 @@ JSON 6902 vs Strategic Merge Patch - You can plan any one of them which suits pa
 
 ### Json 6902 Patch
 
-        `
         patches:              # Here, with the "-target" block, we match the K8s object and then apply the patch i.e. new replicas in this case
           - target:
               kind: Deployment
@@ -189,8 +185,8 @@ JSON 6902 vs Strategic Merge Patch - You can plan any one of them which suits pa
               - op: replace
                 path: /spec/replicas    # just a map to come down to replcas labels
                 value: 5
-        `
-[Ref_Link](https://datatracker.ietf.org/doc/html/rfc6902)   - See the JSON syntax and details
+
+[Ref_Link_JSON_syntax](https://datatracker.ietf.org/doc/html/rfc6902)   - See the JSON syntax and details
 
 ### Strategic Merge Patch
 
@@ -373,7 +369,7 @@ File: kustomization.yaml
               - op: remove
                 path: /spec/template/metadata/labels/org
 
->>  With Strategic Merge  <<  (Play_With_Patches)
+>> With Strategic Merge  <<  (Play_With_Patches)
 
 File: kustomization.yaml
 
@@ -607,10 +603,10 @@ NOTE: Unless you understand all the concept from all steps mentioned above of th
 
 File: Base/kustomization.yaml
 
-resources:
-    - nginx-depl.yaml
-    - service.yaml
-    - redis-depl.yaml
+        resources:
+            - nginx-depl.yaml
+            - service.yaml
+            - redis-depl.yaml
 
 File: Base/nginx-depl.yaml
 
