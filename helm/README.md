@@ -69,14 +69,14 @@ Example:
 
         $ helm create webappl-1    # <- this will create the folllowing files
 
-folder structure =
--> webapp-1 
-      -> templates
-           - configmap.yaml 
-           - deployment.yaml 
-           - service.yaml 
-      -> chart.yaml
-      -> and values.yaml   # this file is very useful for us and templates.
+        folder structure =
+        -> webapp-1 
+              -> templates
+                   - configmap.yaml 
+                   - deployment.yaml 
+                   - service.yaml 
+              -> chart.yaml
+              -> and values.yaml   # this file is very useful for us and templates.
 
 After values.yml gets updated you can run the folllowing commands
 
@@ -209,17 +209,17 @@ Common Actions for Helm:
 
 (PLEASE CHECK ALL THE EXAMPLE COMMAND BELOW)
 
-Usage : 
-  helm [command]
-
-Available Commands:
-  completion        # generate autocompletion scripts for the specified shell
-  create            # create a new chart with the given name
-  dependency        # manage a chart's dependencies
-  env               # helm client environment information
-  get               # download extended information of a named release
-  help              # Help about any command
-  history           # fetch release history
+     Usage : 
+       helm [command]
+     
+     Available Commands:
+       completion        # generate autocompletion scripts for the specified shell
+       create            # create a new chart with the given name
+       dependency        # manage a chart's dependencies
+       env               # helm client environment information
+       get               # download extended information of a named release
+       help              # Help about any command
+       history           # fetch release history
 
 [artifacthub](https://artifacthub.io/) - for most popular website for helm chart application package 
 
@@ -346,6 +346,25 @@ Example:
 
         $ helm install my-first-instance bitnami/wordpress --version 26.0.0
         $ helm install my-second-instance bitnami/wordpress --version 26.0.0 
+
+Another Example with NGINX:
+
+        $ helm install nginx-dev bitnami/nginx
+
+        $ helm install nginx-stage bitnami/nginx
+
+        $ helm install nginx-prod bitnami/nginx
+
+Three Releases, Same Chart, Different configurations.
+
+        helm list
+
+OUTPUT:
+
+        NAME           STATUS
+        nginx-dev      deployed
+        nginx-prod     deployed
+        grafana        deployed
 
 ## Helm vs Kustomize
 
