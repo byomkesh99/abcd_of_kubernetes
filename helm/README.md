@@ -1,7 +1,23 @@
 # Helm
 
+[![KodeKloud Ref Video](http://img.youtube.com/vi/kJscDZfHXrQ/0.jpg)](http://www.youtube.com/watch?v=zJ6WbK9zFpI)
+
 Helm is like a package manager that helps to install, upgrade, rollback, and uninstall K8s objects.
-We do not need to micro-manage each K8s object for us. 
+We do not need to micro-manage each K8s object for us.
+
+## Helm Architecture
+
+                Helm CLI
+                    |
+                    |
+          -------------------
+          |                 |
+     Kubernetes API Server
+                    |
+             Kubernetes Cluster
+
+Currently Helm 3 is running most of the K8s platform. Earlier it was Helm 2
+Differences between them - Helm 3 differs from Helm 2 primarily through the removal of Tiller, namespace-scoped releases, and secrets-based storage. Tiller removed for security reasons because with Tiller user will get more powerfull resource access to the Cluster.
 
 Commands:
         $ helm install <workpress>
@@ -15,11 +31,17 @@ Commands:
 Sub commands & sub-sub commands 
 
         $ helm repo --help 
-        $ helm repo update --help     #  etc 
 
+          Available Commands:
+             add         add a chart repository
+             index       generate an index file given a directory containing packaged charts
+             list        list chart repositories
+             remove      remove one or more chart repositories
+             update      update information of available charts locally from chart repositories
+
+        $ helm repo update --help
 
 [Artifact-HUB](https://artifacthub.io/) -    # Check & Know this site for helm chart 
-
 
 In the above site you will find all packages. Its like docker Hub.
 Also can be search from command line. Example:
@@ -38,12 +60,14 @@ The chart deploy it as a release, to check the release run the following command
         $ helm list 
         $ helm uninstall my-release 
 
-- [Helm hub:] (https://hub.helm.sh/)
-- [Helm charts GitHub Project:] (https://github.com/helm/charts)
-- ]Installing Helm:] (https://helm.sh/docs/intro/install/)
-- ]Helm v3 release notes:] (https://helm.sh/blog/helm-3-released/)
+- [Helm hub:](https://hub.helm.sh/)
+- [Helm charts GitHub Project:](https://github.com/helm/charts)
+- [Installing Helm:](https://helm.sh/docs/intro/install/)
+- [Helm v3 release notes:](https://helm.sh/blog/helm-3-released/)
 
-        $ helm create webappl-1  <-|  # this will create the folllowing files
+Example:
+
+        $ helm create webappl-1    # <- this will create the folllowing files
 
 folder structure =
 -> webapp-1 
@@ -58,11 +82,66 @@ After values.yml gets updated you can run the folllowing commands
 
         $ helm upgrade mywebapp mywebapp-release webapp-1/ --values webapp-1/values.yaml 
 
-
-
 ## From - KodeKloud ---
 
-Helm Chart :
+### Helm Chart
+
+A Basic Example of using Helm: Check the templating part
+
+File: deployment.yaml
+
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: Hello-India-deployment
+      labels:
+        app: Hello-India
+    spec:
+      replicas: {{ .Values.replicaCount }}    # Mark this Point
+      selector:
+        matchLabels:
+          app: Hello-India
+      template:
+        metadata:
+          labels:
+            app: Hello-India
+        spec:
+          containers:
+          - name: Hello-India
+            image: {{ .Values.image.repository }}   # Mark this Point
+            ports:
+            - containerPort: 80
+
+File: service.yaml
+
+     apiVersion: v1
+     kind: Service
+     metadata:
+       name: Hello-India-Service
+     spec:
+       type: NodePort
+       ports:
+         - port: 80
+           targetPort: 80
+           protocol: TCP
+           name: http
+       selector:
+         app: Hello-India
+
+File: Values.yaml
+
+     replicaCount: 2
+     image:
+       repository: helloIndia:1.1
+
+File: Chart.yaml
+
+     apiVersion: v2
+     appVersion: "1.10.1"
+     name: hello India
+     description: a exmaple App
+     
+     type: application
 
 Along with all yaml file like, deployment.yaml, service.yaml you can use file like values.yaml for 
 templating the other yaml codes plus "Chart.yaml" would be for Helm chart to run .
@@ -71,11 +150,13 @@ Which actually to run the Application via Helm chart
 
 Example Code (Chart.yaml):
 
-        apiVersion: v2                    # This comes in Helm-3 to differentiate between Helm 2/3
+        apiVersion: v2                    # This comes in Helm-3 to differentiate between Helm 2 or 3
         appVersion: 5.8.1                 # Application version i.e. wordpress
         version: 12.1.27                  # Chart version
         name: wordpress                   # Name of the chart (you name it according to App)
-        description:
+        description: Web publishing platform
+        type: application                 # There are 2 type - application and Library
+        dependencies:
           -  condition: mariadb.enable
              name: mariadb
              repository: https://charts.bitnami.com/bitnami
@@ -88,42 +169,57 @@ Example Code (Chart.yaml):
         maintainers:
           - email: container@bitnami.com 
             name: Bitnami
-
-[home:] (https://github.com/bitnami/charts/tree/master/bitnami/wordpress)
-[icom:] (https://bitnami.com/assets/stacks/wordpress/img/wordpress-stack-220x234.png)
+       home: https://github.com/bitnami/charts/tree/master/bitnami/wordpress
+       icon: https://bitnami.com/assets/stacks/wordpress/img/wordpress-stack-220x234.png
 
 
 ## Helm Chart Structure
 
-        > (Folder) Hello-World-chart 
-          > templates       # Template directory
-          > values.yaml     # Configurable values (file)
-          > Chart.yaml      # Chart information (file)
-          > LICENSE         # Chart License (file)
-          > README.md       # Readme file
-          > chart           # Dependency Chart directory
+       > (Folder) Hello-India-chart 
+           > templates       # Template directory
+           > values.yaml     # Configurable values (file)
+           > Chart.yaml      # Chart information (file)
+           > LICENSE         # Chart License (file)
+           > README.md       # Readme file
+           > chart           # Dependency Chart directory
+ 
+Another Example:
 
+      myapp-chart/
+      
+          Chart.yaml
+          values.yaml
+      
+          templates/
+      
+              deployment.yaml
+              service.yaml
+              ingress.yaml
+              configmap.yaml
+              secret.yaml
 
-        $ helm --help 
+## $ helm --help
 
 Common Actions for Helm:
 
-          - helm search
-          - helm pull 
-          - helm install 
+          - helm search       # search for charts
+          - helm pull         # download a chart to your local directory to view
+          - helm install      # upload the chart to your Kubernetes cluster
           - helm list 
+
+(PLEASE CHECK ALL THE EXAMPLE COMMAND BELOW)
 
 Usage : 
   helm [command]
 
 Available Commands:
-  completion
-  create
-  Dependency
-  env
-  get
-  help
-  history
+  completion        # generate autocompletion scripts for the specified shell
+  create            # create a new chart with the given name
+  dependency        # manage a chart's dependencies
+  env               # helm client environment information
+  get               # download extended information of a named release
+  help              # Help about any command
+  history           # fetch release history
 
 [artifacthub](https://artifacthub.io/) - for most popular website for helm chart application package 
 
@@ -134,7 +230,7 @@ Available Commands:
 ## Deploying Wordpress
 
         $ helm repo add bitnami https://charts.bitnami.com/bitnami   # "bitnami" has been added to your repositories
-
+        $ helm install [release-name] [chart-name]
         $ helm install my-release bitnami/wordpress 
 
 ## Helm Release 
@@ -150,16 +246,9 @@ Available Commands:
         $ helm repo list
         $ helm repo update
 
-
-
 ## Customizing Chart Parameter
 
-
-Check Google for quick help 
-
-### Example
-
-File: values.yaml
+A File: values.yaml - just for an example to understand
 
         image:
           registry: docker.io 
@@ -184,21 +273,26 @@ File: values.yaml
         wordpressBlogName: User's Blog! 
 
 Here is the custom command to edit the exiting parameters 
-        $ helm install --set wordpressBlogName="Helm Tutorials" my-release bitnami/wordpress --set wordpressEmail="antoine@example.com" 
 
-OR You can create your own custom values file 
+        $ helm install --set wordpressBlogName="Helm Learning" my-release bitnami/wordpress     # wordpressBlogName is there in values.yaml
+        $ helm install --set wordpressEmail="abc@wordpress.com" my-release bitnami/wordpress
+        OR
+        $ helm install --set wordpressBlogName="Helm Tutorials" my-release bitnami/wordpress --set wordpressEmail="antoine@example.com"
+        $
+        OR
+        $ cat custom-values.yaml
+        
+        wordpressBlogName: Helm Learning
+        wordpressEmail: abc@wordpress.com
 
-File: custom-values.yaml
-
-        wordpressBlogName: Helm Tutorials 
-        wordpressEmail: antoine@example.com 
-
-        COMMANDS:
-
-        $ helm pull bitnami/wordpress  # This will download the archived file, you need to un-tar it after 
-        $ helm pull --untar bitname/wordpress  # This will pull the file and untar it
-
-        $ helm install my-release ./wordpress 
+        $ helm install --values custom-values.yaml my-release bitnami/wordpress
+        OR
+        $ helm pull bitnami/wordpress         # it will download the package in a archive format in your local machine
+        $ helm pull --untar bitnami/wordpress # Now untar your bitnami package
+        $ ls wordpress    # go to desire folder/file and then EDIT it and then install it
+        $
+        $ helm install my-release ./wordpress
+      
 
 ## Lifecycle Management with Helm
 
@@ -207,7 +301,33 @@ File: custom-values.yaml
         $ helm list   (list of release) 
         $ helm history nginx-release   ## (lists of releases and revision)
 
-Note: each revision number is notning but to display as each rollback 
+Note: each revision number is notning but to display as each rollback
+
+      helm create myapp
+              │
+              ▼
+      Edit values.yaml
+              │
+              ▼
+      Edit templates/
+              │
+              ▼
+      helm lint
+              │
+              ▼
+      helm template
+              │
+              ▼
+      helm install
+              │
+              ▼
+      helm upgrade
+              │
+              ▼
+      helm rollback
+              │
+              ▼
+      helm uninstall
 
 ## Some IMPORTANT Commands to remember
 
@@ -226,3 +346,16 @@ Example:
 
         $ helm install my-first-instance bitnami/wordpress --version 26.0.0
         $ helm install my-second-instance bitnami/wordpress --version 26.0.0 
+
+## Helm vs Kustomize
+
+      | Feature                | Helm                             | Kustomize                      |
+      | ---------------------- | -------------------------------- | ------------------------------ |
+      | Uses templates         | ✅ Yes                            | ❌ No                          |
+      | Uses overlays          | Limited                          | ✅ Yes                          |
+      | Package manager        | ✅ Yes                            | ❌ No                          |
+      | Downloads applications | ✅ Yes                            | ❌ No                          |
+      | Versioned releases     | ✅ Yes                            | ❌ No                          |
+      | Rollback support       | ✅ Yes                            | ❌ No                          |
+      | Built into `kubectl`   | ❌ No                             | ✅ Yes                         |
+      | Best for               | Installing reusable applications | Customizing your own manifests |
