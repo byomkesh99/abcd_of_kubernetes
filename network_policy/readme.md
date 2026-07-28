@@ -1,4 +1,4 @@
-# Network Policy (Incoming: Ingress, & Expernal: Egress)
+# Network Policy (Incoming Traffic: Ingress, & Outgoing Traffic: Egress)
 
 [Official Documentation Page](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/#limit-access-to-the-nginx-service)
 
