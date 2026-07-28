@@ -334,13 +334,15 @@ Note: each revision number is notning but to display as each rollback
         $ helm repo add bitnami https://charts.bitnami.com/bitnami
         $ helm install my-release oci://REGISTRY_NAME/REPOSITORY_NAME/wordpress    
 
-        $ helm search hub wordpress  # All wordpress version in Artifact hub website 
+        $ helm search hub wordpress   # All wordpress version in Artifact hub website 
         $ helm search repo wordpress  # to find word press App version 
-        $ helm repo list   ## How many helm chart repositories are there in the controlplane node now?
-        $ helm uninstall my-wordpress or apache or my-browse or my-release ## these are release name while you are going to uninstall
-        $ helm repo remove hashicorp ## Remove particular repository 
+        $ helm repo list              # How many helm chart repositories are there in the controlplane node now?
 
-We can run mutiple Application Instance with different name of release in the same system.
+        $ helm uninstall my-wordpress or apache or my-browse or my-release  # These are release name while you are going to uninstall
+        $ helm repo remove hashicorp                                        # Remove particular repository 
+
+
+### We can run mutiple Application Instance with different name of release in the same system
 
 Example:
 
@@ -363,8 +365,8 @@ OUTPUT:
 
         NAME           STATUS
         nginx-dev      deployed
+        nginx-stage    deployed
         nginx-prod     deployed
-        grafana        deployed
 
 ## Helm vs Kustomize
 
