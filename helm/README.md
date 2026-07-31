@@ -1,7 +1,5 @@
 # Helm
 
-[![KodeKloud Ref Video](http://img.youtube.com/vi/kJscDZfHXrQ/0.jpg)](http://www.youtube.com/watch?v=zJ6WbK9zFpI)
-
 Helm is like a package manager that helps to install, upgrade, rollback, and uninstall K8s objects.
 We do not need to micro-manage each K8s object for us.
 
@@ -83,6 +81,8 @@ After values.yml gets updated you can run the folllowing commands
         $ helm upgrade mywebapp mywebapp-release webapp-1/ --values webapp-1/values.yaml 
 
 ## From - KodeKloud ---
+
+[KodeKloud Ref Video](http://www.youtube.com/watch?v=kJscDZfHXrQ)
 
 ### Helm Chart
 
@@ -475,7 +475,7 @@ Install the NGINX Ingress Controller
 
 Install Helm (If its not there)
 
-     $ brew install helm
+     $ brew install helm        # For MAC user
      $ helm version
 
 Add the Bitnami Repository
