@@ -297,11 +297,45 @@ Here is the custom command to edit the exiting parameters
 ## Lifecycle Management with Helm
 
         $ helm install nginx-release bitnami/nginx --version 7.1.0
+        $ helm upgrade nginx-release bitnami.nginx --version 18.3.6   # 18.3.6 is Chart Version
         $ helm upgrade nginx-release bitnami/nginx 
         $ helm list   (list of release) 
-        $ helm history nginx-release   ## (lists of releases and revision)
+        $ helm history nginx-release      # (lists of releases and revision)
+        $ helm rollback nginx-release 1   # Rollback to release 1 (Well, It does not release back to 1 instead Helm creates release 3)
 
-Note: each revision number is notning but to display as each rollback
+Note: each rollback Helm add a new revision number. Here is output
+
+      controlplane ~ ➜  helm list
+      NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+      dazzling-web    default         6               2026-07-28 17:47:56.896892407 +0000 UTC deployed        nginx-18.3.6    1.27.4 
+      
+      controlplane ~ ➜  helm history dazzling-web
+      REVISION        UPDATED                         STATUS          CHART           APP VERSION     DESCRIPTION     
+      1               Tue Jul 28 17:23:59 2026        superseded      nginx-12.0.4    1.22.0          Install complete
+      2               Tue Jul 28 17:24:02 2026        superseded      nginx-12.0.5    1.22.0          Upgrade complete
+      3               Tue Jul 28 17:24:05 2026        superseded      nginx-12.0.4    1.22.0          Upgrade complete
+      4               Tue Jul 28 17:34:03 2026        superseded      nginx-19.0.0    1.27.4          Upgrade complete
+      5               Tue Jul 28 17:36:13 2026        superseded      nginx-12.0.4    1.22.0          Rollback to 3   
+      6               Tue Jul 28 17:47:56 2026        deployed        nginx-18.3.6    1.27.4          Upgrade complete
+      
+      controlplane ~ ➜  helm rollback dazzling-web 3
+      Rollback was a success! Happy Helming!
+      
+      controlplane ~ ➜  helm list
+      NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+      dazzling-web    default         7               2026-07-28 17:52:10.023479268 +0000 UTC deployed        nginx-12.0.4    1.22.0
+      
+      controlplane ~ ➜  helm history dazzling-web
+      REVISION        UPDATED                         STATUS          CHART           APP VERSION     DESCRIPTION     
+      1               Tue Jul 28 17:23:59 2026        superseded      nginx-12.0.4    1.22.0          Install complete
+      2               Tue Jul 28 17:24:02 2026        superseded      nginx-12.0.5    1.22.0          Upgrade complete
+      3               Tue Jul 28 17:24:05 2026        superseded      nginx-12.0.4    1.22.0          Upgrade complete
+      4               Tue Jul 28 17:34:03 2026        superseded      nginx-19.0.0    1.27.4          Upgrade complete
+      5               Tue Jul 28 17:36:13 2026        superseded      nginx-12.0.4    1.22.0          Rollback to 3   
+      6               Tue Jul 28 17:47:56 2026        superseded      nginx-18.3.6    1.27.4          Upgrade complete
+      7               Tue Jul 28 17:52:10 2026        deployed        nginx-12.0.4    1.22.0          Rollback to 3
+
+**Workflow diagram*
 
       helm create myapp
               │
@@ -341,7 +375,6 @@ Note: each revision number is notning but to display as each rollback
         $ helm uninstall my-wordpress or apache or my-browse or my-release  # These are release name while you are going to uninstall
         $ helm repo remove hashicorp                                        # Remove particular repository 
 
-
 ### We can run mutiple Application Instance with different name of release in the same system
 
 Example:
@@ -380,3 +413,226 @@ OUTPUT:
       | Rollback support       | ✅ Yes                            | ❌ No                          |
       | Built into `kubectl`   | ❌ No                             | ✅ Yes                         |
       | Best for               | Installing reusable applications | Customizing your own manifests |
+
+## Another Example - Using HELM install Nginx and access it from Laptop via Ingress Controller
+
+Create a Kind Configuration
+
+File: kind-config-port-mapping.yaml
+
+     kind: Cluster
+     apiVersion: kind.x-k8s.io/v1alpha4
+     
+     nodes:
+     - role: control-plane
+       extraPortMappings:
+       - containerPort: 80      # Inside the Docker Container expose to port 80
+         hostPort: 80           # means Forward my Laptop's localhost:80 to Container Port 80
+         protocol: TCP
+     
+       - containerPort: 443
+         hostPort: 443
+         protocol: TCP
+
+Note: Little Explanation: 
+- containerPort: 80 means Inside the Docker Container expose to port 80. Also remember, inside container, Ingress Controller listening on port 80
+
+hostPort: 80 - means Forward my Laptop's localhost:80 to Container Port 80
+Similarly port 443 also functions.
+
+These port mappings are the key to making Ingress reachable from your Laptop.
+
+Create the Cluster
+
+     $ kind create cluster --config kind-config.yaml
+     $ kubectl get nodes
+
+Expected Status
+
+     NAME                 STATUS   ROLES           AGE     VERSION
+     kind-control-plane   Ready    control-plane   3h27m   v1.34.0
+
+Install the NGINX Ingress Controller
+
+     $ kubectl apply -f \
+     https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+
+     (the official ingress-nginx manifest because it's designed specifically for kind clusters.)
+
+     Wait for the controller:
+
+     $ kubectl wait \
+       --namespace ingress-nginx \
+       --for=condition=ready pod \
+       --selector=app.kubernetes.io/component=controller \
+       --timeout=180s
+
+     Verify:
+     $ kubectl get pods -n ingress-nginx
+
+     Output:
+     ingress-nginx-controller
+
+Install Helm (If its not there)
+
+     $ brew install helm
+     $ helm version
+
+Add the Bitnami Repository
+
+     $ helm repo add bitnami https://charts.bitnami.com/bitnami
+
+     $ helm repo update
+
+Install NGINX usig Helm
+
+     $ helm install my-nginx bitnami/nginx --set service.type=ClusterIP
+       (Install it with a ClusterIP service because the Ingress Controller will expose it.)
+
+     Verify:
+     $ kubectl get pods
+     $ kubectl get svc
+
+     Output:
+     NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+     kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP          3h33m
+     my-nginx     ClusterIP   10.96.126.173   <none>        80/TCP,443/TCP   3h29m
+
+     $ kubectl get ingressclass
+     Output:
+     NAME    CONTROLLER             PARAMETERS   AGE
+     nginx   k8s.io/ingress-nginx   <none>       3h34m
+
+Create Ingress Resource or People simply say "Ingress"
+
+File: ingress_resource.yaml
+
+     apiVersion: networking.k8s.io/v1
+     kind: Ingress
+     metadata:
+       name: my-nginx
+     spec:
+       ingressClassName: nginx
+     
+       rules:
+       - host: my-nginx.local
+         http:
+           paths:
+           - path: /
+             pathType: Prefix
+             backend:
+               service:
+                 name: my-nginx
+                 port:
+                   number: 80
+
+Apply to create resource:
+
+     $ kubectl apply -f ingress.yaml
+
+For Local DNS resolution Update /etc/hosts file in your Laptop
+
+     $ sudo vi /etc/hosts
+     
+     Add the line
+     127.0.0.1 my-nginx.local
+
+Verify your ingress resource
+
+     $ kubectl get ingress
+
+     Output:
+     NAME       CLASS   HOSTS
+     my-nginx   nginx   my-nginx.local
+
+Test from you local Laptop
+
+     $ curl http://my-nginx.local
+
+     Or From Browser
+     http://my-nginx.local
+
+You should see the NGINX welcome page.
+
+The complete request flow
+
+     Browser
+        │
+        ▼
+     my-nginx.local
+        │
+        ▼
+     Mac /etc/hosts
+        │
+        ▼
+     Port 80
+        │
+        ▼
+     Ingress Controller
+        │
+        ▼
+     Ingress Rule
+        │
+        ▼
+     ClusterIP Service
+        │
+        ▼
+     NGINX Pod
+
+
+NOTE: If I wanted to deploy Grafana, ArgoCD then same Ingress-Controller going to work because I do not need to expose port to
+80 0r 91 or 82. This is where Ingress shines. One port i.e. 80 is enough. The reason is that Ingress routes by Host or Path, not by different ports.
+
+Host-Based Routing
+
+     Browser
+
+     http://nginx.local
+              |
+              ▼
+     NGINX
+     
+     http://grafana.local
+              |
+              ▼
+     Grafana
+     
+     http://argocd.local
+              |
+              ▼
+     ArgoCD
+
+Everything comes through: Port 80 . The Ingress Controller looks at the Host header and decides where to send the request.
+
+Another option is PATH-Based Routing
+
+     localhost/nginx
+     
+     localhost/grafana
+     
+     localhost/argocd
+
+Again only 80 going to use.
+
+In case your Laptop already listening in 80 port by another application like Apache, Tomcat Server then
+you can configure like this
+
+     <YAML>
+     extraPortMappings:
+     
+     - containerPort: 80
+       hostPort: 8080
+
+Now you localhost:8080 going to map to Container:80.
+
+If you wanted to RUN Developer and Production Cluster where both can not use 80 then 
+
+Development:
+
+     <YAML>
+     hostPort: 8080
+
+Production:
+
+     <YAML>
+     hostPort: 8090
